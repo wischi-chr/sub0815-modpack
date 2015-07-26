@@ -104,7 +104,7 @@ for i = 1,#defs do
 				side,side,
 				side,side
 			},
-			groups = {cracky = 2},
+			groups = {cracky = 2, not_in_creative_inventory = 1},
 			sounds = default.node_sound_stone_defaults(),
 			on_rightclick = function(pos, node, player, itemstack, pointed_thing)
 				return process_right_click(pos, node, player, itemstack, pointed_thing, i, lvl)
@@ -115,8 +115,6 @@ for i = 1,#defs do
 		})
 	end
 end
-
-print(dump(item2def))
 
 minetest.register_node("liquidtank:tank_empty",
 {
@@ -137,4 +135,13 @@ minetest.register_node("liquidtank:tank_empty",
 	on_construct = function(pos)
 		refresh_meta_info(pos,i,lvl)
 	end
+})
+
+minetest.register_craft({
+	output = "liquidtank:tank_empty",
+	recipe = {
+		{"default:steel_ingot","default:glass","default:steel_ingot"},
+		{"default:glass","bucket:bucket_empty","default:glass"},
+		{"default:steel_ingot","default:glass","default:steel_ingot"},
+	}
 })

@@ -137,11 +137,15 @@ minetest.register_node("liquidtank:tank_empty",
 	end
 })
 
+
+local glass_item = "default:glass"
+if minetest.get_modpath("xpanes") then glass_item = "xpanes:pane" end
+
 minetest.register_craft({
 	output = "liquidtank:tank_empty",
 	recipe = {
-		{"default:steel_ingot","default:glass","default:steel_ingot"},
-		{"default:glass","bucket:bucket_empty","default:glass"},
-		{"default:steel_ingot","default:glass","default:steel_ingot"},
+		{"default:steel_ingot",glass_item,"default:steel_ingot"},
+		{glass_item,"bucket:bucket_empty",glass_item},
+		{"default:steel_ingot",glass_item,"default:steel_ingot"},
 	}
 })

@@ -133,7 +133,7 @@ minetest.register_node("liquidtank:tank_empty",
 		end
 	end,
 	on_construct = function(pos)
-		refresh_meta_info(pos,i,lvl)
+		refresh_meta_info(pos)
 	end
 })
 

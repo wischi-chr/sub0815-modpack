@@ -31,12 +31,19 @@ local side_empty = get_liquid_texture(0,"#0000")
 
 local refresh_meta_info = function(pos,def_id,lvl)
 	local meta = minetest.get_meta(pos)
-	if lvl then
+	if lvl ~= 0 then
 		meta:set_string("infotext","Liquid Tank (" .. defs[def_id].description .. ": "  .. lvl .. "/" .. defs[def_id].max_lvl .. ")")
 	else
 		meta:set_string("infotext","Liquid Tank (empty)")
 	end
 end
+
+
+function round(num, idp)
+  local mult = 10^(idp or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
 
 local force_add_item = function(player, inv, item)
 	local overflow = inv:add_item("main",item)
@@ -64,6 +71,90 @@ local take_give = function(take_item, give_item, player, itemstack)
 	end
 end
 
+local function set_can_wear(itemstack, level, max_level)
+	local temp
+	if level == 0 then
+		temp = 0
+	else
+		temp = 65536 - math.floor(level / max_level * 65535)
+		if temp > 65535 then temp = 65535 end
+		if temp < 1 then temp = 1 end
+	end
+	itemstack:set_wear(temp)
+end
+
+local function set_can_level(itemstack,charge,cap)
+	itemstack:set_metadata(tostring(charge))
+	set_can_wear(itemstack, charge, cap)
+end
+
+local function get_can_level(itemstack)
+	if itemstack:get_metadata() == "" then
+		return 0
+	else
+		return tonumber(itemstack:get_metadata())
+	end
+end
+
+
+local get_fill = function(max_can_lvl,can_lvl,container_lvl,max_container_lvl)
+	if can_lvl >= max_can_lvl and container_lvl >= max_container_lvl then return 0 end
+	if can_lvl <= 0 and container_lvl <= 0 then return 0 end
+	
+	if container_lvl < max_container_lvl and can_lvl > 0 then
+		return math.min(max_container_lvl-container_lvl,can_lvl)
+	elseif container_lvl > 0 and can_lvl <= 0 then
+		return -math.min(container_lvl,max_can_lvl)
+	elseif can_lvl > 0 and container_lvl >= max_container_lvl then
+		return -(max_can_lvl-can_lvl)
+	end
+end
+
+local process_fill = function(fill,current_container_lvl,can_lvl,code,itemstack,pos,max_can_lvl,def_id)
+	set_can_level(itemstack,can_lvl-fill,max_can_lvl)
+	local nlvl = current_container_lvl+fill
+	if nlvl == 0 then
+		minetest.swap_node(pos, {name = "liquidtank:tank_empty"})
+	else
+		minetest.swap_node(pos, {name = "liquidtank:tank_"..code.."_"..nlvl})
+	end
+	refresh_meta_info(pos,def_id,nlvl)
+end
+
+local process_can_click = function(pos, node, player, itemstack, pointed_thing, i, lvl)
+	local name = itemstack:get_name()
+	local is_water = name == "technic:water_can"
+	local is_lava = name == "technic:lava_can"
+	
+	if not is_water and not is_lava then return false end
+	if not (node.name == "liquidtank:tank_empty") then
+		if is_water and not string.find(node.name,"liquidtank:tank_water") then return false end
+		if is_lava and not string.find(node.name,"liquidtank:tank_lava") then return false end
+	end
+	
+	local max_can = 0
+	local code = ""
+	if is_water then
+		max_can = 16
+		code = "water"
+		i = 1
+	elseif is_lava then
+		max_can = 8
+		code = "lava"
+		i = 2
+	end
+	local can_lvl = get_can_level(itemstack)
+	
+	if i == 0 then
+		if can_lvl <= 0 then return false end
+		process_fill(can_lvl,lvl,can_lvl,code,itemstack,pos,max_can,i)
+		return true
+	end
+	
+	local fill = get_fill(max_can,can_lvl,lvl,defs[i].max_lvl)
+	process_fill(fill,lvl,can_lvl,code,itemstack,pos,max_can,i)
+	return true
+end
 
 local process_right_click = function(pos, node, player, itemstack, pointed_thing, def_id, lvl)
 	--check fill
@@ -107,6 +198,7 @@ for i = 1,#defs do
 			groups = {cracky = 2, not_in_creative_inventory = 1},
 			sounds = default.node_sound_stone_defaults(),
 			on_rightclick = function(pos, node, player, itemstack, pointed_thing)
+				if process_can_click(pos, node, player, itemstack, pointed_thing, i, lvl) then return itemstack end
 				return process_right_click(pos, node, player, itemstack, pointed_thing, i, lvl)
 			end,
 			on_construct = function(pos)
@@ -127,6 +219,7 @@ minetest.register_node("liquidtank:tank_empty",
 	groups = {cracky = 2},
 	sounds = default.node_sound_stone_defaults(),
 	on_rightclick = function(pos, node, player, itemstack, pointed_thing)
+		if process_can_click(pos, node, player, itemstack, pointed_thing,0,0) then return itemstack end
 		local def = item2def[itemstack:get_name()]
 		if def then
 			return process_right_click(pos, node, player, itemstack, pointed_thing, def, 0)

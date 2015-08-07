@@ -1,11 +1,14 @@
-local property_path = minetest.get_modpath("property")
+property = {}
+property.mod_path = minetest.get_modpath("property")
+property.mvps_path = minetest.get_modpath("mesecons_mvps")
 
-dofile(property_path.."/foundationstone.lua")
+-- load modules
+dofile(property.mod_path.."/api.lua")
+dofile(property.mod_path.."/foundationstone.lua")
 
 
-local mvps_p = minetest.get_modpath("mesecons_mvps")
-
-if mvps_p then
+-- demo mvps_handler
+if property.mvps_path then
 	mesecon.register_mvps_stopper(nil,function(node, pushdir, stack, stackid)
 		if stackid ~= 1 then return end --only check once
 		

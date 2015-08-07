@@ -42,12 +42,12 @@ end
 
 -- source: mesecons util.lua
 -- compares two tables
-table.compare = function(t1, t2)
+table.equal = function(t1, t2)
 	if type(t1) ~= type(t2) then return false end
 	if type(t1) ~= "table" and type(t2) ~= "table" then return t1 == t2 end
 
 	for i, e in pairs(t1) do
-		if not table.compare(e, t2[i]) then return false end
+		if not table.equal(e, t2[i]) then return false end
 	end
 
 	return true

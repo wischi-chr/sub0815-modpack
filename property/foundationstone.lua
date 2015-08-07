@@ -19,12 +19,13 @@ local biome_tops = {
 }
 
 local function close_pos(pos,name)
-	print("close: "..minetest.pos_to_string(pos).." by "..tostring(name))
 	local old_val = open_nodes[name]
 	if not old_val then return end 							-- nothing to close
-	print("A")
 	if not table.equal(old_val.pos, pos) then return end	-- no longer relevant 
-	print("B")
+	print("close: "..minetest.pos_to_string(pos).." by "..tostring(name))
+	
+	
+	
 	minetest.set_node(old_val.pos, old_val.node)
 	open_nodes[name] = nil
 end
@@ -125,7 +126,7 @@ local function place_foundation_stone(itemstack, placer, pointed_thing)
 	minetest.set_node(pos,{name = foundationstone_name})
 	
 	-- Call game-wide callbacks
-	local takeitem = true
+	local take_item = true
 	local _,callback
 	for _, callback in ipairs(minetest.registered_on_placenodes) do
 		-- Copy pos and node because callback can modify them
@@ -137,7 +138,7 @@ local function place_foundation_stone(itemstack, placer, pointed_thing)
 		end
 	end
 	
-	if takeitem then
+	if take_item then
 		itemstack:take_item()
 	end
 	

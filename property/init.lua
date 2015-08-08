@@ -4,6 +4,7 @@ property.mvps_path = minetest.get_modpath("mesecons_mvps")
 
 -- load modules
 dofile(property.mod_path.."/api.lua")
+dofile(property.mod_path.."/protection.lua")
 dofile(property.mod_path.."/foundationstone.lua")
 
 

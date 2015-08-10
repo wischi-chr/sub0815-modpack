@@ -6,7 +6,6 @@ property.foundation_top_clearance = 2
 local biome_tops = {
 	["default:dirt"] = true,
 	["default:sand"] = true,
-	["default:stone"] = true,
 	["default:gravel"] = true,
 	["default:cobble"] = true,
 	["default:snowblock"] = true,
@@ -44,12 +43,6 @@ local function can_build_foundationstone(pos,node)
 	return true
 end
 
-local function place2(itemstack, placer, pointed_thing)
-	--minetest.show_formspec(
-	--minetest.chat_send_all("foundation use")
-	if not pointed_thing.under then return end
-	property.free_foundation_place(pointed_thing.under,placer:get_player_name())
-end
 
 local function dig_foundation_stone(pos, oldnode, digger)
 	return false
@@ -73,6 +66,7 @@ local function place_foundation_stone(itemstack, placer, pointed_thing)
 	end
 
 	minetest.set_node(pos,{name = foundationstone_name})
+	clear_foundationstone_space(pos)
 	
 	-- Call game-wide callbacks
 	local take_item = true
@@ -105,7 +99,6 @@ minetest.register_node(foundationstone_name,{
 	groups = {cracky=1, stone=1},
 	sounds = default.node_sound_stone_defaults(),
 	on_place = place_foundation_stone,
-	--on_use = place2,
 	on_dig = dig_foundation_stone,
 })
 

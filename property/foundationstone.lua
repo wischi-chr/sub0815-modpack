@@ -1,5 +1,20 @@
 local foundationstone_name = "property:foundation_stone"
+property.foundationstone_name = foundationstone_name
 property.foundation_top_clearance = 2
+
+-- should be detected automatically
+local biome_tops = {
+	["default:dirt"] = true,
+	["default:sand"] = true,
+	["default:stone"] = true,
+	["default:gravel"] = true,
+	["default:cobble"] = true,
+	["default:snowblock"] = true,
+	["default:mossycobble"] = true,
+	["default:desert_sand"] = true,
+	["default:desert_stone"] = true,
+	["default:dirt_with_grass"] = true
+}
 
 local function clear_foundationstone_space(pos)
 	for i = 1,property.foundation_top_clearance do
@@ -16,7 +31,7 @@ local function can_build_foundationstone(pos,node)
 	if not node then return false end
 	
 	-- Verify if node can be placed
-	if node.name ~= "air" and not minetest.registered_nodes[node.name].buildable_to then return itemstack end
+	if not biome_tops[node.name] then return false end
 	
 	-- Verify tow block height clearance
 	for i = 1,property.foundation_top_clearance do
@@ -36,15 +51,20 @@ local function place2(itemstack, placer, pointed_thing)
 	property.free_foundation_place(pointed_thing.under,placer:get_player_name())
 end
 
+local function dig_foundation_stone(pos, oldnode, digger)
+	return false
+end
+
 local function place_foundation_stone(itemstack, placer, pointed_thing)
-	local pos = pointed_thing.above
-	local node = minetest.get_node_or_nil(pos)
-	
+	local pos = pointed_thing.under
+		
+	-- test if pos is protected
 	if minetest.is_protected(pos, placer:get_player_name()) then
 		minetest.record_protection_violation(pos, placer:get_player_name())
 		return
 	end
 	
+	local node = minetest.get_node_or_nil(pos)
 	local can_build, reason = can_build_foundationstone(pos,node)
 	
 	if not can_build then
@@ -85,7 +105,8 @@ minetest.register_node(foundationstone_name,{
 	groups = {cracky=1, stone=1},
 	sounds = default.node_sound_stone_defaults(),
 	on_place = place_foundation_stone,
-	on_use = place2,
+	--on_use = place2,
+	on_dig = dig_foundation_stone,
 })
 
 minetest.register_abm({
@@ -120,3 +141,12 @@ minetest.register_on_node_changed(function(pos,new,old)
 		end
 	end
 end)
+
+minetest.register_craft({
+	output = foundationstone_name,
+	recipe = {
+		{"default:stone", "default:stone", "default:stone"},
+		{"default:stone", "default:sign_wall", "default:stone"},
+		{"default:stone", "default:stone", "default:stone"}
+	}
+})

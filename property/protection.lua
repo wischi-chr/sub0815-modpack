@@ -1,4 +1,29 @@
 
+minetest.register_chatcommand("set_spawn", {
+	params = "<radius>",
+	description = "Sets the spawn to the current position",
+	func = function(name, param)
+		local player = minetest.get_player_by_name(name)
+		local pos = player:getpos()
+		local radius = tonumber(param)
+		if not radius or radius <= 0 then return false, "Radius must be greater than 0" end
+		
+		local p1 = {x = pos.x - radius, y =  -31000, z = pos.z - radius}
+		local p2 = {x = pos.x + radius, y = 31000, z = pos.z + radius}
+		
+		areas.areas[1] = {
+			owner = "<server>",
+			pos1 = p1,
+			pos2 = p2,
+			name = "Spawn",
+			groups = {spawn = 1}
+		}
+		areas:save()
+		
+		return true, "Spawn was set successfully"
+	end,
+})
+
 minetest.register_privilege("openbuild", {
 	description = "Player can build in the open world of minetest.",
 	give_to_singleplayer= true,

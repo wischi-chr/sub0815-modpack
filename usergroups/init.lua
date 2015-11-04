@@ -1,6 +1,6 @@
 
 -- disable for now
-return
+do return end
 
 usergroups = {}
 

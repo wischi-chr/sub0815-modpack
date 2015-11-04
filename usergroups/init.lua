@@ -1,4 +1,7 @@
 
+-- disable for now
+return
+
 usergroups = {}
 
 usergroups.modpath = minetest.get_modpath("usergroups")
